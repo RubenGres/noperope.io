@@ -3,17 +3,19 @@ let spine = [];
 let outline = [];
 let actual_radiuses = [];
 let speed = 4;
-let food;
+let slitherFrequency = 0.1;
+let slitherAmplitude = Math.PI / 10;
 let last_mouse_x = 0;
 let last_mouse_y = 0;
 let direction;
-let head_hitbox_radius = 10;
-let food_spawn_margins = 500;
+let head_hitbox_radius = 24;
+let food_spawn_margins = 50;
 let score = 0;
 let tail_size = 5;
 let backgroundLayer, pathLayer;
 let isGameOver = false;
 
+let food;
 const particles = [];
 
 class Particle {
@@ -70,7 +72,7 @@ function initializeGame() {
   for (let i = 0; i < 2 * radiuses.length; i++) {
     outline.push(createVector(start.x + i * length, start.y));
   }
-  food = createVector(food_spawn_margins + random(width - food_spawn_margins), food_spawn_margins + random(height) - food_spawn_margins);
+  replaceFood();
   direction = createVector(last_mouse_x, last_mouse_y);
   pathLayer = createGraphics(windowWidth, windowHeight);
   score = 0;
@@ -78,22 +80,23 @@ function initializeGame() {
 }
 
 function updateSpine(x, y) {
-  if(isGameOver) {
+  if (isGameOver) {
     return;
   }
-  
+
   let head = spine[0];
   if (x != last_mouse_x && y != last_mouse_y) {
     last_mouse_x = mouseX;
     last_mouse_y = mouseY;
     direction = createVector(x - head.x, y - head.y);
   }
-  direction.setMag(speed);
-  head.add(direction);
 
-  pathLayer.stroke("#FFE69610");
-  pathLayer.strokeWeight(5);
-  pathLayer.line(spine[1].x, spine[1].y, spine[3].x, spine[3].y); // Draw the path
+  // Calculate the slither effect
+  let slitherAngle = sin(frameCount * slitherFrequency) * slitherAmplitude;
+  let slitherDirection = direction.copy().rotate(slitherAngle);
+
+  slitherDirection.setMag(speed);
+  head.add(slitherDirection);
 
   for (let i = 0; i < radiuses.length - 1; i++) {
     let vector = p5.Vector.sub(spine[i], spine[i + 1]);
@@ -130,7 +133,42 @@ function updateOutline() {
   }
 }
 
-function drawOutline() {
+function drawEyes() {
+  let eyeSegment = spine[1];
+  let eyeSpacement = 8;
+  let eyeRadius = 10;
+  let nextPoint = spine[0];
+  let angle = atan2(nextPoint.y - eyeSegment.y, nextPoint.x - eyeSegment.x);
+
+  let leftPoint = createVector(cos(angle + PI / 2) * eyeSpacement + eyeSegment.x, sin(angle + PI / 2) * eyeSpacement + eyeSegment.y);
+  let rightPoint = createVector(cos(angle - PI / 2) * eyeSpacement + eyeSegment.x, sin(angle - PI / 2) * eyeSpacement + eyeSegment.y);
+  
+  fill("#FFFFFF");
+  strokeWeight(3);
+  stroke("#547754");
+  ellipse(leftPoint.x, leftPoint.y, eyeRadius, eyeRadius);
+  ellipse(rightPoint.x, rightPoint.y, eyeRadius, eyeRadius);
+  fill("#000000");
+  noStroke();
+  
+  let leftPupil = createVector(cos(angle + 0.8*PI / 2) * eyeSpacement + eyeSegment.x, sin(angle + 0.8*PI / 2) * eyeSpacement + eyeSegment.y);
+  let rightPupil = createVector(cos(angle - 0.8*PI / 2) * eyeSpacement + eyeSegment.x, sin(angle - 0.8*PI / 2) * eyeSpacement + eyeSegment.y);
+  
+  ellipse(leftPupil.x, leftPupil.y, 3, 3)
+  ellipse(rightPupil.x, rightPupil.y, 3, 3)
+  
+}
+
+function drawOutline() {  
+  //shadow
+  beginShape();
+  noStroke();
+  fill("#00000014");
+  for (let i = 0; i < outline.length; i++) {
+    curveVertex(outline[i].x, outline[i].y + 10);
+  }
+  endShape(CLOSE);
+  
   beginShape();
   fill("#95CD95");
   stroke("#547754");
@@ -139,11 +177,26 @@ function drawOutline() {
     curveVertex(outline[i].x, outline[i].y);
   }
   endShape(CLOSE);
+  
+  beginShape();
+  stroke("#A8E6A8");
+  strokeWeight(2);
+  noFill();
+  for (let i = 0; i < spine.length; i++) {
+    curveVertex(spine[i].x, spine[i].y);
+  }
+  endShape();
 }
 
 function drawFood() {
-  fill(255, 0, 0);
+  // shadow
   noStroke();
+  fill("#00000014");
+  ellipse(food.x, food.y + 10, 20, 20);
+  
+  fill("#FF0000");
+  strokeWeight(3);
+  stroke("#FF6161");
   ellipse(food.x, food.y, 20, 20);
 }
 
@@ -188,6 +241,10 @@ function startDeathAnimation() {
         let segment = spine[radiuses.length - 1]
         radiuses.pop()
         
+        if(spine.length > 2) {
+          spine.pop()  
+        }
+        
         for (let i = 0; i < 10; i++) {
           let p = new Particle(segment.x, segment.y, 5, "#DF4F26");
           particles.push(p);
@@ -207,11 +264,17 @@ function startDeathAnimation() {
   }
 }
 
+function replaceFood() {
+  food = createVector(food_spawn_margins + random(width - 2 * food_spawn_margins), food_spawn_margins + random(height - 2 * food_spawn_margins));
+}
+
 function checkCollisions() {
   let head = spine[0];
   if (dist(head.x, head.y, food.x, food.y) < head_hitbox_radius) {
     startEatingAnimation();
-    food = createVector(food_spawn_margins + random(width - 2 * food_spawn_margins), food_spawn_margins + random(height - 2 * food_spawn_margins));
+
+    replaceFood();
+    
     score++;
     
     //particles
@@ -231,8 +294,8 @@ function checkBorders() {
 
 
 function checkSelfIntersection() {
-  let head = spine[0];
-  for (let i = 1; i < spine.length; i++) {
+  let head = spine[2];
+  for (let i = 3; i < spine.length; i++) {
     if (dist(head.x, head.y, spine[i].x, spine[i].y) < head_hitbox_radius) {
       startDeathAnimation();
       break;
@@ -271,6 +334,16 @@ function updateParticles() {
   }
 }
 
+function drawTrace() {
+  if(isGameOver) {
+    return;
+  }
+  
+  pathLayer.stroke("#FFE69610");
+  pathLayer.strokeWeight(5);
+  pathLayer.line(spine[1].x, spine[1].y, spine[3].x, spine[3].y);
+}
+
 function draw() {
   image(backgroundLayer, 0, 0);
   image(pathLayer, 0, 0);
@@ -278,7 +351,9 @@ function draw() {
   drawFood();
   updateSpine(mouseX, mouseY);
   updateOutline();
+  drawTrace();
   drawOutline();
+  drawEyes();
   checkCollisions();
   checkBorders();
   checkSelfIntersection();
