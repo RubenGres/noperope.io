@@ -4,8 +4,8 @@ let pathLayer;
 let isGameOver = false;
 let background;
 
-let food;
-let player_snake;
+let foods = [];
+let snakes = [];
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -17,8 +17,19 @@ function setup() {
 
 
 function initializeGame() {
-  replaceFood();
-  player_snake = new Snake(3, "#547754", "#95CD95", "#A8E6A8");
+  foods = [];
+  addFood(3);
+
+  let start_position = createVector(width / 2, height / 2)
+
+  snakes = [];
+  let player_snake = new Snake(start_position);
+  snakes.push(player_snake);
+
+  let mouse = new Mouse(start_position);
+  snakes.push(mouse);
+
+
   pathLayer = createGraphics(windowWidth, windowHeight);
   score = 0;
   isGameOver = false;
@@ -26,20 +37,25 @@ function initializeGame() {
 
 
 function drawFood() {
-  // shadow
-  noStroke();
-  fill("#00000014");
-  ellipse(food.x, food.y + 10, 20, 20);
-  
-  fill("#FF0000");
-  strokeWeight(3);
-  stroke("#FF6161");
-  ellipse(food.x, food.y, 20, 20);
+  for(food of foods) {
+    // shadow
+    noStroke();
+    fill("#00000014");
+    ellipse(food.x, food.y + 10, 20, 20);
+    
+    fill("#FF0000");  
+    strokeWeight(3);
+    stroke("#FF6161");
+    ellipse(food.x, food.y, 20, 20);
+  }
 }
 
 
-function replaceFood() {
-  food = createVector(food_spawn_margins + random(width - 2 * food_spawn_margins), food_spawn_margins + random(height - 2 * food_spawn_margins));
+function addFood(n) {
+  for(let i = 0; i < n; i++) {
+    let food = createVector(food_spawn_margins + random(width - 2 * food_spawn_margins), food_spawn_margins + random(height - 2 * food_spawn_margins));
+    foods.push(food);
+  }
 }
 
 
@@ -58,8 +74,10 @@ function draw() {
   updateParticles();
   drawFood();
   
-  player_snake.update(mouseX, mouseY);
-  player_snake.draw();
+  for(snake of snakes) {
+    snake.update();
+    snake.draw();
+  }
   
   drawScore();
 }

@@ -1,6 +1,6 @@
-class Snake {
+class ProceduralAnimal {
 
-    constructor(length, mainColor, fillColor, spineColor) {
+    constructor(length, startPosition, mainColor, fillColor, spineColor) {
         this.segmentLength = 25;
         this.speed = 4;
         this.slitherFrequency = 0.1;
@@ -10,11 +10,13 @@ class Snake {
         this.eyeSpacement = 8;
         this.eyeRadius = 10;
         this.headShape =  [5, 15, 5, 4]
+
+        this.start = startPosition;
         
+        this.direction = createVector(0, 0); // direction of the head of the snake
         this.spine = [];
         this.outline = [];
         this.radiuses = [];
-        this.direction;
         this.last_mouse_x = 0;
         this.last_mouse_y = 0;
         this.mainColor = mainColor;
@@ -35,29 +37,18 @@ class Snake {
             this.radiuses.push(this.tail_width);
         }
 
-        let start = createVector(width / 2, height / 2);
         for (let i = 0; i < this.radiuses.length; i++) {
-            this.spine.push(createVector(start.x, start.y + i * this.segmentLength));
+            this.spine.push(createVector(this.start.x, this.start.y + i * this.segmentLength));
         }
 
         for (let i = 0; i < 2 * this.spine.length; i++) {
-            this.outline.push(createVector(start.x + i * length, start.y));
+            this.outline.push(createVector(this.start.x + i * length, this.start.y));
         }
-
-        this.direction = createVector(this.last_mouse_x, this.last_mouse_y);
     }
 
-
-    updateSpine(x, y) {
+    updateSpine() {
         let head = this.spine[0];
 
-        // only move snake if the mouse is moving
-        if (x != this.last_mouse_x && y != this.last_mouse_y) {
-            this.last_mouse_x = mouseX;
-            this.last_mouse_y = mouseY;
-            this.direction = createVector(x - head.x, y - head.y);
-        }
-        
         // Calculate the slither effect
         let slitherAngle = sin(frameCount * this.slitherFrequency) * this.slitherAmplitude;
         let slitherDirection = this.direction.copy().rotate(slitherAngle);
@@ -72,7 +63,6 @@ class Snake {
         }
     }
       
-      
     updateOutline() {
         if(this.spine.length < 3) {
             return;
@@ -80,7 +70,6 @@ class Snake {
         
         if(this.radiuses.length != this.spine.length) {
             let n_missing = this.spine.length - this.radiuses.length;
-            console.log(n_missing);
             for(let i = 0; i < n_missing; i++){
                 this.radiuses.push(random(this.tail_width - 1, this.tail_width + 1));
             }
@@ -164,7 +153,7 @@ class Snake {
 
 
     drawTrace() {
-        if(isGameOver) {
+        if(this.spine.length < 4) {
             return;
         }
         
@@ -176,6 +165,7 @@ class Snake {
 
     startEatingAnimation() {
         let original_radiuses = [...this.radiuses];
+        
         let growAmount = 2 * this.tail_width;
         let animationFrames = this.spine.length * 5;
         let frameCounter = 0;
@@ -202,26 +192,23 @@ class Snake {
             }
         }
         
-        requestAnimationFrame(eating_animation);
+        eating_animation();
     }
       
 
-    startDeathAnimation() {
+    startDeathAnimation(callback) {
         let animationFrames = this.spine.length * 5;
         let when_to_pop = Math.floor(animationFrames/(this.spine.length - 3))
         let frameCounter = 0;
 
-        let spine = this.spine;
-        let radiuses = this.radiuses;
-
-        function animate() {
+        const dying_animation = () => {
             if (frameCounter < animationFrames) {   
                 if(frameCounter % when_to_pop == 0) {
-                    let segment = spine[spine.length - 1]
-                    radiuses.pop()
+                    let segment = this.spine[this.spine.length - 1]
+                    this.radiuses.pop()
                     
-                    if(spine.length > 2) {
-                        spine.pop()  
+                    if(this.spine.length > 2) {
+                        this.spine.pop()  
                     }
                     
                     for (let i = 0; i < 10; i++) {
@@ -231,41 +218,41 @@ class Snake {
                 }
                 
                 frameCounter++;
-                requestAnimationFrame(animate);
+                requestAnimationFrame(dying_animation);
             } else {
-                initializeGame();
+                callback();
             }
         }
 
-        if(!isGameOver) {
-            isGameOver = true;
-            animate(); 
-        }
+        dying_animation();
     }
 
-
-    checkCollisions() {
+    checkFoodCollision() {
         let head = this.spine[0];
-        if (dist(head.x, head.y, food.x, food.y) < this.head_hitbox_radius) {
-            this.startEatingAnimation();
-
-            replaceFood();
-            
-            score++;
-            
-            //particles
-            for (let i = 0; i < 10; i++) {
-                let p = new Particle(head.x, head.y, 5, "#F31C1C");
-                particles.push(p);
+        for (let i = foods.length - 1; i >= 0; i--) {
+            let food = foods[i];
+            if (dist(head.x, head.y, food.x, food.y) < this.head_hitbox_radius) {
+                this.startEatingAnimation();
+    
+                foods.splice(i, 1);
+                
+                addFood(1);
+                
+                score++;
+                
+                // particles
+                for (let i = 0; i < 10; i++) {
+                    let p = new Particle(head.x, head.y, 5, "#F31C1C");
+                    particles.push(p);
+                }
             }
         }
     }
-
 
     checkBorders() {
         let head = this.spine[0];
         if (head.x < 0 || head.x > width || head.y < 0 || head.y > height) {
-            this.startDeathAnimation();
+            this.kill();
         }
     }
 
@@ -274,21 +261,21 @@ class Snake {
         let head = this.spine[2];
         for (let i = 3; i < this.spine.length; i++) {
             if (dist(head.x, head.y, this.spine[i].x, this.spine[i].y) < 0.75 * this.head_hitbox_radius) {
-                this.startDeathAnimation();
+                this.kill();
                 break;
             }
         }
     }
 
   
-    update(x, y) {
+    update() {
         this.updateOutline();
-        this.checkCollisions();
+        this.checkFoodCollision();
         this.checkSelfIntersection();
         this.checkBorders();
         
         if(!isGameOver) {
-            this.updateSpine(x, y);
+            this.updateSpine();
         }
     }
 
@@ -297,5 +284,126 @@ class Snake {
         this.drawOutline();
         this.drawEyes();
         this.drawTrace();
+    }
+}
+
+
+class Snake extends ProceduralAnimal {
+    constructor(startPosition) {
+        super(5, startPosition, "#547754", "#95CD95", "#A8E6A8");  // Call the constructor of the parent class
+        this.direction = createVector(0, -1)
+        this.direction.normalize();
+    }
+    
+    mouseControls() {
+        let head = this.spine[0];
+        let maxSteerAngle = Math.PI / 35;  // Maximum steer angle in radians (for example, 22.5 degrees)
+
+        // Calculate the desired direction
+        let desiredDirection = createVector(mouseX - head.x, mouseY - head.y);
+
+        if(desiredDirection.mag() < 30) {
+            console.log("too cloue")
+            return;
+        }
+
+        desiredDirection.normalize();
+
+        // Calculate the current direction
+        let currentDirection = this.direction.copy();
+        currentDirection.normalize();
+
+        // Calculate the angle between the current direction and the desired direction
+        let angleBetween = p5.Vector.angleBetween(currentDirection, desiredDirection);
+
+        // If the angle between is greater than the max steer angle, adjust the desired direction
+        if (abs(angleBetween) > maxSteerAngle) {
+            let steerAngle = (angleBetween > 0) ? maxSteerAngle : -maxSteerAngle;
+            currentDirection.rotate(steerAngle);
+        }
+
+        // Set the new direction
+        this.direction = currentDirection.copy();
+    }
+    
+    kill(){
+        if(isGameOver) {
+            return
+        }
+
+        isGameOver = true;
+        this.startDeathAnimation(() => {
+            initializeGame();
+        });
+    }
+
+    update() {
+        super.update();
+
+        this.mouseControls();
+    }
+}
+
+
+class Mouse extends ProceduralAnimal {
+    constructor(startPosition) {
+        super(2, startPosition, "#000000", "#777777", "#777777");
+        this.segmentLength = 10;
+        this.speed = 2;
+        this.slitherFrequency = 0.5;
+        this.slitherAmplitude = Math.PI / 10;
+        this.head_hitbox_radius = 0;
+        this.tail_width = 1;
+        this.eyeSpacement = 5;
+        this.eyeRadius = 10;
+        this.headShape =  [3, 7, 5, 0.5]
+
+        this.reset()
+    }
+
+    mouseLogic() {
+        let snake_head = snakes[0].spine[0];
+        let mouse_head = this.spine[0];
+        let threat_distance = dist(snake_head.x, snake_head.y, mouse_head.x, mouse_head.y);
+        let movingTime = 1000;
+
+        if (threat_distance < 150) {
+            this.direction = createVector(mouse_head.x - snake_head.x, mouse_head.y - snake_head.y);
+        } else {
+            if (!this.randomDirection || millis() - this.randomDirectionStartTime > movingTime) {
+                // Generate a new random direction and record the start time
+                this.randomDirection = p5.Vector.random2D();
+                this.randomDirectionStartTime = millis();
+            }
+    
+            this.direction = this.randomDirection;
+        }
+    
+        // Steer away from borders if getting too close
+        let borderMargin = 70;
+        let borderAvoidance = createVector(0, 0);
+    
+        if (mouse_head.x < borderMargin) {
+            borderAvoidance.x = 1;
+        } else if (mouse_head.x > width - borderMargin) {
+            borderAvoidance.x = -1;
+        }
+    
+        if (mouse_head.y < borderMargin) {
+            borderAvoidance.y = 1;
+        } else if (mouse_head.y > height - borderMargin) {
+            borderAvoidance.y = -1;
+        }
+    
+        this.direction.add(borderAvoidance);
+    
+        this.direction.normalize();
+    }
+    
+
+    update() {
+        super.update();
+
+        this.mouseLogic();
     }
 }
