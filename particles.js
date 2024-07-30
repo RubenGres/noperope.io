@@ -45,3 +45,10 @@ function updateParticles() {
     }
 }
   
+
+function simpleExplosionAnimation(x, y, particlesNumber, color) {
+  for (let i = 0; i < particlesNumber; i++) {
+    let p = new Particle(x, y, particlesNumber, color);
+    particles.push(p);
+  }
+}
