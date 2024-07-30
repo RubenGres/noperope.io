@@ -5,7 +5,7 @@ let isGameOver = false;
 let background;
 
 let foods = [];
-let snakes = [];
+let animals = [];
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -22,12 +22,12 @@ function initializeGame() {
 
   let start_position = createVector(width / 2, height / 2)
 
-  snakes = [];
+  animals = [];
   let player_snake = new Snake(start_position);
-  snakes.push(player_snake);
+  animals.push(player_snake);
 
   let mouse = new Mouse(start_position);
-  snakes.push(mouse);
+  animals.push(mouse);
 
 
   pathLayer = createGraphics(windowWidth, windowHeight);
@@ -74,9 +74,9 @@ function draw() {
   updateParticles();
   drawFood();
   
-  for(snake of snakes) {
-    snake.update();
-    snake.draw();
+  for(animal of animals) {
+    animal.update();
+    animal.draw();
   }
   
   drawScore();

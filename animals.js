@@ -295,7 +295,7 @@ class Snake extends ProceduralAnimal {
         this.direction.normalize();
     }
     
-    mouseControls() {
+    playerLogic() {
         let head = this.spine[0];
         let maxSteerAngle = Math.PI / 35;  // Maximum steer angle in radians (for example, 22.5 degrees)
 
@@ -303,7 +303,6 @@ class Snake extends ProceduralAnimal {
         let desiredDirection = createVector(mouseX - head.x, mouseY - head.y);
 
         if(desiredDirection.mag() < 30) {
-            console.log("too cloue")
             return;
         }
 
@@ -339,8 +338,7 @@ class Snake extends ProceduralAnimal {
 
     update() {
         super.update();
-
-        this.mouseControls();
+        this.playerLogic();
     }
 }
 
@@ -361,8 +359,15 @@ class Mouse extends ProceduralAnimal {
         this.reset()
     }
 
+    kill(){
+        const index = animals.indexOf(this);
+        if (index > -1) {
+            animals.splice(index, 1);
+        }
+    }
+
     mouseLogic() {
-        let snake_head = snakes[0].spine[0];
+        let snake_head = animals[0].spine[0];
         let mouse_head = this.spine[0];
         let threat_distance = dist(snake_head.x, snake_head.y, mouse_head.x, mouse_head.y);
         let movingTime = 1000;
@@ -403,7 +408,6 @@ class Mouse extends ProceduralAnimal {
 
     update() {
         super.update();
-
         this.mouseLogic();
     }
 }
