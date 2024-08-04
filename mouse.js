@@ -10,7 +10,7 @@ class Mouse extends ProceduralAnimal {
         this.eyeSpacement = 5;
         this.eyeRadius = 10;
         this.headShape =  [3, 7, 5, 0.5]
-        this.maxSteerAngle = 2*Math.PI;
+        this.maxSteerAngle = Math.PI / 2;
         this.traceWeight = 2;
 
         this.reset()
@@ -35,8 +35,11 @@ class Mouse extends ProceduralAnimal {
 
         let nextDirection = createVector(0, 0);
 
-        if (threat_distance < 150) {
-            nextDirection.add(createVector(mouse_head.x - snake_head.x, mouse_head.y - snake_head.y));
+        if (threat_distance < 200) {
+            let avoidSnakeDirection = createVector(mouse_head.x - snake_head.x, mouse_head.y - snake_head.y);
+            avoidSnakeDirection.normalize();
+            
+            nextDirection.add(avoidSnakeDirection);
         } else {
             if (!this.randomDirection || millis() - this.randomDirectionStartTime > movingTime) {
                 // Generate a new random direction and record the start time
@@ -47,9 +50,10 @@ class Mouse extends ProceduralAnimal {
             nextDirection.add(this.randomDirection);
         }
 
-        let borderAvoidance = this.avoidBorderDirection(70)
-        nextDirection.add(borderAvoidance * 10);
+        let borderAvoidance = this.avoidBorderDirection(50);
 
-        return nextDirection
+        nextDirection.add(borderAvoidance);  
+
+        return nextDirection.normalize()
     }
 }

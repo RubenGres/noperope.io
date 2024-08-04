@@ -9,8 +9,8 @@ class ProceduralAnimal {
         this.tail_width = 5;
         this.eyeSpacement = 8;
         this.eyeRadius = 10;
-        this.headShape =  [5, 15, 5, 4]
-        this.maxSteerAngle = Math.PI / 30;
+        this.headShape =  [5, 15, 5]
+        this.maxSteerAngle = Math.PI / 45;
         this.isAlive = true;
         this.traceWeight = 5;
         this.hasCollider = true;
@@ -63,8 +63,10 @@ class ProceduralAnimal {
     
         // Calculate the slither effect and move the head
         let slitherAngle = sin(frameCount * this.slitherFrequency) * this.slitherAmplitude;
-        let slitherDirection = this.direction.copy().rotate(slitherAngle);
-        head.add(slitherDirection);
+        let slitherDirection = this.direction.copy();
+        head.add(this.direction);
+
+        this.spine[this.headShape.length].add(slitherDirection.rotate(slitherAngle))
     
         // Follow with the body
         for (let i = 1; i < this.spine.length; i++) {
