@@ -62,16 +62,19 @@ class ProceduralAnimal {
         this.direction = desiredDirection;
     
         // Calculate the slither effect and move the head
-        let slitherAngle = sin(frameCount * this.slitherFrequency) * this.slitherAmplitude;
-        let slitherDirection = this.direction.copy();
-        head.add(this.direction);
-
-        this.spine[this.headShape.length].add(slitherDirection.rotate(slitherAngle))
-    
+        head.add(this.direction.copy());
+        
         // Follow with the body
         for (let i = 1; i < this.spine.length; i++) {
             let vector = p5.Vector.sub(this.spine[i - 1], this.spine[i]).setMag(this.segmentLength);
             this.spine[i] = p5.Vector.sub(this.spine[i - 1], vector);
+
+            if(i> this.headShape.length) {
+                let slitherAngle = sin(frameCount * this.slitherFrequency + i);
+                let magnitude = this.segmentLength / (20 * Math.log((this.spine.length - i)));
+                let slitherDirection = vector.copy().setMag(magnitude).rotate(slitherAngle);
+                this.spine[i].add(slitherDirection);
+            }
         }
     } 
       

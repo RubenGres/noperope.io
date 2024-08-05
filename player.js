@@ -1,6 +1,6 @@
 class PlayerSnake extends ProceduralAnimal {
     constructor(startPosition, controlType) {
-        super(2, startPosition, "#547754", "#95CD95", "#A8E6A8");  // Call the constructor of the parent class
+        super(10, startPosition, "#547754", "#95CD95", "#A8E6A8");  // Call the constructor of the parent class
         this.direction = createVector(0, -1)
         this.direction.normalize();
         this.controlType = "KEYBOARD";
