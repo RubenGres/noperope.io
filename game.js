@@ -10,7 +10,7 @@ let animals = [];
 function setup() {
   createCanvas(windowWidth, windowHeight);
   pathLayer = createGraphics(windowWidth, windowHeight);
-  background = new Background(color('#FFDD73'), color('#EECF6D'))
+  background = new Background(color('#FFDD73'), color('#dbbb56'))
   background.draw();
   initializeGame();
 }
