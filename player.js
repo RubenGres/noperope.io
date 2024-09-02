@@ -1,9 +1,9 @@
-class PlayerSnake extends ProceduralAnimal {
+class PlayerSnake extends Carnivorous {
     constructor(startPosition, controlType) {
-        super(10, startPosition, "#547754", "#95CD95", "#A8E6A8");  // Call the constructor of the parent class
+        super(2, startPosition, "#547754", "#95CD95", "#A8E6A8");  // Call the constructor of the parent class
         this.direction = createVector(0, -1)
         this.direction.normalize();
-        this.controlType = "KEYBOARD";
+        this.controlType = "keyboard";
     }
     
     mousePlayerControl() {
@@ -37,11 +37,11 @@ class PlayerSnake extends ProceduralAnimal {
 
     desiredDirection() {
         switch(this.controlType) {
-            case "MOUSE":
-                return this.mousePlayerControl();
-
-            default:
+            case "keyboard":
                 return this.keyboardPlayerControl();
+                
+            default:
+                return this.mousePlayerControl();
         }
         
     }

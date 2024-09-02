@@ -71,8 +71,13 @@ class ProceduralAnimal {
 
             if(i> this.headShape.length) {
                 let slitherAngle = sin(frameCount * this.slitherFrequency + i);
-                let magnitude = this.segmentLength / (20 * Math.log((this.spine.length - i)));
-                let slitherDirection = vector.copy().setMag(magnitude).rotate(slitherAngle);
+                
+                if(this.spine.length - i <= 1) {
+                    continue
+                }
+
+                let magnitude = this.segmentLength / (20 * Math.log(this.spine.length - i));
+                let slitherDirection = vector.setMag(magnitude).rotate(slitherAngle);
                 this.spine[i].add(slitherDirection);
             }
         }
@@ -255,6 +260,7 @@ class ProceduralAnimal {
                 // particles
                 let head = this.spine[0];
                 simpleExplosionAnimation(head.x, head.y, 5, "#F31C1C");
+                return true;
             }
         }
     }
@@ -347,7 +353,7 @@ class ProceduralAnimal {
         this.checkFoodCollision();
         this.checkSelfIntersection();
         this.checkCollision();
-        this.checkBorders();
+        //this.checkBorders();
         this.updateSpine();
     }
 

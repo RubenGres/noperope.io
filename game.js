@@ -5,7 +5,7 @@ let isGameOver = false;
 let background;
 
 let foods = [];
-let animals = [];
+let animals = {};
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -21,12 +21,12 @@ function initializeGame() {
   addFood(3);
 
   animals = [];
-  let player_snake = new PlayerSnake(createVector(width * 0.5, height / 2));
-  let mouse = new Mouse(createVector(width * 0.25, height / 2));
+  //let player_snake = new PlayerSnake(createVector(width * 0.5, height / 2));
+  //let mouse = new Mouse(createVector(width * 0.25, height / 2));
   let botSnake = new BotSnake(createVector(width * 0.75, height / 2));
   
-  animals.push(player_snake);
-  animals.push(mouse);
+  //animals.push(player_snake);
+  //animals.push(mouse);
   animals.push(botSnake);
 
   pathLayer = createGraphics(windowWidth, windowHeight);
