@@ -11,6 +11,7 @@ const server = http.createServer(app);
 
 // static page for the client
 app.use(express.static(path.join(__dirname, 'client')));
+app.use('/shared', express.static(path.join(__dirname, 'shared')));
 
 game_server.start(GAMESTATE_BROADCAST_MS);
 

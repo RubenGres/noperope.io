@@ -1,4 +1,6 @@
-class Carnivorous extends ProceduralAnimal {
+import { ProceduralAnimal } from "./animals.js";
+
+export class Carnivorous extends ProceduralAnimal {
     constructor(length, startPosition, mainColor, fillColor, spineColor) {
         super(length, startPosition, mainColor, fillColor, spineColor);
     }

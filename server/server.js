@@ -16,6 +16,8 @@ function broadcastGameState() {
 io.on('connection', (socket) => {
     const playerId = socket.id;
 
+    game.addPlayer(playerId)
+
     // Send the initial game state to the client
     socket.emit('initialize', {
         players: game.players,
@@ -31,7 +33,7 @@ io.on('connection', (socket) => {
 
     // Handle disconnection
     socket.on('disconnect', () => {
-        game.removePlater(playerId)
+        game.removePlayer(playerId)
     });
 });
 

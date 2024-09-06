@@ -1,4 +1,4 @@
-let socket = io('http://localhost:3000');  // Connect to the server
+let socket = io('https://legendary-guide-5vv66j9q64wfwwp-3000.app.github.dev/');  // Connect to the server
 
 let animals = [];
 let foods = [];

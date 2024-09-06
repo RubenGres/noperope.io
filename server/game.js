@@ -57,4 +57,4 @@ setInterval(() => {
     tick();
 }, GAMETICK_SPEED_MS);
 
-module.exports = { movePlayer, removePlayer, animals, foods, score, players}
+module.exports = { movePlayer, removePlayer, addPlayer, animals, foods, score, players}

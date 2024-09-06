@@ -1,4 +1,4 @@
-class ProceduralAnimal {
+export class ProceduralAnimal {
 
     constructor(length, startPosition, mainColor, fillColor, spineColor) {
         this.segmentLength = 25;

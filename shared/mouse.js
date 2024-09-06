@@ -1,4 +1,6 @@
-class Mouse extends ProceduralAnimal {
+import { ProceduralAnimal } from "./animals.js";
+
+export class Mouse extends ProceduralAnimal {
     constructor(startPosition) {
         super(2, startPosition, "#000000", "#777777", "#777777");
         this.segmentLength = 10;

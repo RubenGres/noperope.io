@@ -1,4 +1,6 @@
-class BotSnake extends Carnivorous {
+import { Carnivorous } from "./carnivorous.js";
+
+export class BotSnake extends Carnivorous {
     constructor(startPosition) {
         super(5, startPosition, "#545477", "#9595CD", "#A8A8E6");
         this.targetFood = createVector(0, 0);
