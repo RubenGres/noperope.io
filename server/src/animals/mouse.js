@@ -1,6 +1,9 @@
-import { ProceduralAnimal } from "./animals.js";
+const ProceduralAnimal = require("./animals.js");
+const Game = require("../game.js")
+const { vec3 } = require('gl-matrix');
 
-export class Mouse extends ProceduralAnimal {
+class Mouse extends ProceduralAnimal {
+    
     constructor(startPosition) {
         super(2, startPosition, "#000000", "#777777", "#777777");
         this.segmentLength = 10;
@@ -14,10 +17,10 @@ export class Mouse extends ProceduralAnimal {
         this.headShape =  [3, 7, 5, 0.5]
         this.maxSteerAngle = Math.PI / 2;
         this.traceWeight = 2;
-
+        
         this.reset()
     }
-
+    
     kill(){
         super.kill();
         const index = animals.indexOf(this);
@@ -28,34 +31,37 @@ export class Mouse extends ProceduralAnimal {
         let head = this.spine[0]
         simpleExplosionAnimation(head.x, head.y, 5, "#FF0000");
     }
-
+    
     desiredDirection() {
-        let snake_head = animals[0].spine[0];
-        let mouse_head = this.spine[0];
-        let threat_distance = dist(snake_head.x, snake_head.y, mouse_head.x, mouse_head.y);
         let movingTime = 1000;
 
-        let nextDirection = createVector(0, 0);
+        let snake_head = vec3.fromValues(0, 0);
+        let mouse_head = this.spine[0];
 
+        let threat_distance = snake_head.xyDistanceTo(mouse_head);
+
+        let nextDirection = vec3.fromValues(0, 0);
+        
         if (threat_distance < 200) {
             let avoidSnakeDirection = createVector(mouse_head.x - snake_head.x, mouse_head.y - snake_head.y);
             avoidSnakeDirection.normalize();
             
             nextDirection.add(avoidSnakeDirection);
         } else {
-            if (!this.randomDirection || millis() - this.randomDirectionStartTime > movingTime) {
+            if (!this.randomDirection || 0 - this.randomDirectionStartTime > movingTime) {
                 // Generate a new random direction and record the start time
-                this.randomDirection = p5.Vector.random2D().normalize();
-                this.randomDirectionStartTime = millis();
+                this.randomDirection = vec3.fromValues(Math.random(), Math.random()).normalize();
+                this.randomDirectionStartTime = 0;
             }
     
             nextDirection.add(this.randomDirection);
         }
 
-        let borderAvoidance = this.avoidBorderDirection(50);
-
-        nextDirection.add(borderAvoidance);  
+        //let borderAvoidance = this.avoidBorderDirection(50);
+        //nextDirection.add(borderAvoidance);  
 
         return nextDirection.normalize()
     }
 }
+
+module.exports = Mouse

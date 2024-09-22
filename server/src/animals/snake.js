@@ -1,9 +1,11 @@
-import { Carnivorous } from "./carnivorous.js";
+const Carnivorous = require("./carnivorous.js");
+const { vec2 } = require('gl-matrix');
 
-export class BotSnake extends Carnivorous {
+class BotSnake extends Carnivorous {
+    
     constructor(startPosition) {
         super(5, startPosition, "#545477", "#9595CD", "#A8A8E6");
-        this.targetFood = createVector(0, 0);
+        this.targetFood = vec3.fromValues(0, 0);
         this.controlType = "AI" // one of: keyboard, mouse, AI
     }
 
@@ -46,7 +48,7 @@ export class BotSnake extends Carnivorous {
             let closest_food = foods.reduce((closest, food) => 
                 dist(food, head) < dist(closest, head) ? food : closest, 
                 foods[0]
-            );
+                );
 
             this.targetFood = closest_food;
         }
@@ -56,7 +58,7 @@ export class BotSnake extends Carnivorous {
 
     desiredDirection() {
         let head = this.spine[0]
-
+        
         let closest_food = this.chooseTargetFood();
 
         let nextDirection = createVector(0, 0);
@@ -72,7 +74,9 @@ export class BotSnake extends Carnivorous {
         nextDirection.add(selfAvoidance);
         
         nextDirection.normalize();
-
+        
         return nextDirection;
     }
 }
+
+module.exports = BotSnake

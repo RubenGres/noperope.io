@@ -1,5 +1,6 @@
-export class ProceduralAnimal {
+const vec3 = require('vec3');
 
+class ProceduralAnimal {
     constructor(length, startPosition, mainColor, fillColor, spineColor) {
         this.segmentLength = 25;
         this.speed = 4;
@@ -17,7 +18,7 @@ export class ProceduralAnimal {
 
         this.start = startPosition;
         
-        this.direction = createVector(0, 0); // direction of the head of the snake
+        this.direction = vec3.fromValues(0, 0); // direction of the head of the snake
         this.spine = [];
         this.outline = [];
         this.radiuses = [];
@@ -41,17 +42,24 @@ export class ProceduralAnimal {
         }
         
         for (let i = 0; i < this.radiuses.length; i++) {
-            this.spine.push(createVector(this.start.x, this.start.y + i * this.segmentLength));
+            this.spine.push(vec3.fromValues(this.start.x, this.start.y + i * this.segmentLength));
         }
 
-        this.outline = Array(2*this.spine.length).fill(createVector(0, 0))
+        this.outline = Array(2*this.spine.length).fill(vec3.fromValues(0, 0))
     }
 
     updateSpine() {
         let head = this.spine[0];
         let desiredDirection = this.desiredDirection();
-        let angleBetween = p5.Vector.angleBetween(this.direction, desiredDirection);
-    
+
+        // Calculate the angle between the two vectors
+        const dotProduct = this.direction.dot(desiredDirection);
+        const magnitudeA = this.direction.mag();
+        const magnitudeB = desiredDirection.mag();
+
+        const cosAngle = dotProduct / (magnitudeA * magnitudeB);
+        const angleBetween = Math.acos(cosAngle);
+        
         // Adjust the direction based on the maxSteerAngle
         if (abs(angleBetween) > this.maxSteerAngle) {
             let steerAngle = this.maxSteerAngle * Math.sign(angleBetween);
@@ -60,7 +68,7 @@ export class ProceduralAnimal {
     
         desiredDirection.setMag(this.speed);
         this.direction = desiredDirection;
-    
+        
         // Calculate the slither effect and move the head
         head.add(this.direction.copy());
         
@@ -102,8 +110,8 @@ export class ProceduralAnimal {
             let radius = this.radiuses[i];
             let angle = atan2(nextPoint.y - point.y, nextPoint.x - point.x);
         
-            let leftPoint = createVector(cos(angle + PI / 2) * radius + point.x, sin(angle + PI / 2) * radius + point.y);
-            let rightPoint = createVector(cos(angle - PI / 2) * radius + point.x, sin(angle - PI / 2) * radius + point.y);
+            let leftPoint = vec3.fromValues(cos(angle + PI / 2) * radius + point.x, sin(angle + PI / 2) * radius + point.y);
+            let rightPoint = vec3.fromValues(cos(angle - PI / 2) * radius + point.x, sin(angle - PI / 2) * radius + point.y);
         
             if (i == this.spine.length - 1) {
                 this.outline[i] = leftPoint;
@@ -120,8 +128,8 @@ export class ProceduralAnimal {
         let nextPoint = this.spine[0];
         let angle = atan2(nextPoint.y - eyeSegment.y, nextPoint.x - eyeSegment.x);
       
-        let leftPoint = createVector(cos(angle + PI / 2) * this.eyeSpacement + eyeSegment.x, sin(angle + PI / 2) * this.eyeSpacement + eyeSegment.y);
-        let rightPoint = createVector(cos(angle - PI / 2) * this.eyeSpacement + eyeSegment.x, sin(angle - PI / 2) * this.eyeSpacement + eyeSegment.y);
+        let leftPoint = vec3.fromValues(cos(angle + PI / 2) * this.eyeSpacement + eyeSegment.x, sin(angle + PI / 2) * this.eyeSpacement + eyeSegment.y);
+        let rightPoint = vec3.fromValues(cos(angle - PI / 2) * this.eyeSpacement + eyeSegment.x, sin(angle - PI / 2) * this.eyeSpacement + eyeSegment.y);
         
         fill("#FFFFFF");
         strokeWeight(3);
@@ -131,8 +139,8 @@ export class ProceduralAnimal {
         fill("#000000");
         noStroke();
         
-        let leftPupil = createVector(cos(angle + 0.8*PI / 2) * this.eyeSpacement + eyeSegment.x, sin(angle + 0.8*PI / 2) * this.eyeSpacement + eyeSegment.y);
-        let rightPupil = createVector(cos(angle - 0.8*PI / 2) * this.eyeSpacement + eyeSegment.x, sin(angle - 0.8*PI / 2) * this.eyeSpacement + eyeSegment.y);
+        let leftPupil = vec3.fromValues(cos(angle + 0.8*PI / 2) * this.eyeSpacement + eyeSegment.x, sin(angle + 0.8*PI / 2) * this.eyeSpacement + eyeSegment.y);
+        let rightPupil = vec3.fromValues(cos(angle - 0.8*PI / 2) * this.eyeSpacement + eyeSegment.x, sin(angle - 0.8*PI / 2) * this.eyeSpacement + eyeSegment.y);
         
         ellipse(leftPupil.x, leftPupil.y, 3, 3)
         ellipse(rightPupil.x, rightPupil.y, 3, 3)  
@@ -207,7 +215,7 @@ export class ProceduralAnimal {
 
                 let tail = this.spine[this.spine.length - 1]
                 
-                this.spine.push(createVector(tail.x, tail.y));
+                this.spine.push(vec3.fromValues(tail.x, tail.y));
             }
         }
         
@@ -218,7 +226,7 @@ export class ProceduralAnimal {
         let animationFrames = this.spine.length * 5;
         let when_to_pop = Math.floor(animationFrames/(this.spine.length - 3))
         let frameCounter = 0;
-
+        
         const dying_animation = () => {
             if (frameCounter < animationFrames) {   
                 if(frameCounter % when_to_pop == 0) {
@@ -244,13 +252,13 @@ export class ProceduralAnimal {
         dying_animation();
     }
 
-    checkFoodCollision() {
+    checkFoodCollision(foods) {
         let head = this.spine[0];
         for (let i = foods.length - 1; i >= 0; i--) {
             let food = foods[i];
-            if (dist(head.x, head.y, food.x, food.y) < this.head_hitbox_radius) {
+            if (head.xyDistanceTo(food) < this.head_hitbox_radius) {
                 this.startEatingAnimation();
-    
+                
                 foods.splice(i, 1);
                 
                 addFood(1);
@@ -271,22 +279,22 @@ export class ProceduralAnimal {
             this.kill();
         }
     }
-
-    checkCollision() {
+    
+    checkCollision(animals) {
         if(!this.hasCollider) {
             return
         }
-
+        
         let head = this.spine[0];
         for(let other of animals) {
             if (other == this) {
                 continue; // avoid self collision
             }
-
-
+            
+            
             for (let i = 0; i < other.spine.length; i++) {
                 let other_vertebre = other.spine[i];
-                if (dist(head.x, head.y, other_vertebre.x, other_vertebre.y) < this.head_hitbox_radius) {
+                if (head.xyDistanceTo(other_vertebre) < this.head_hitbox_radius) {
                     this.collisionEnter(other);
                     break;
                 }
@@ -297,7 +305,7 @@ export class ProceduralAnimal {
     checkSelfIntersection() {
         let head = this.spine[0];
         for (let i = 3; i < this.spine.length; i++) {
-            if (dist(head.x, head.y, this.spine[i].x, this.spine[i].y) < this.head_hitbox_radius) {
+            if (head.xyDistanceTo(this.spine[i]) < this.head_hitbox_radius) {
                 this.kill();
                 break;
             }
@@ -305,12 +313,12 @@ export class ProceduralAnimal {
     }
 
     desiredDirection() {
-        return createVector(0, 0);
+        return vec3.fromValues(0, 0);
     }
 
     avoidBorderDirection(borderMargin) {
         // Steer away from borders if getting too close
-        let borderAvoidance = createVector(0, 0);
+        let borderAvoidance = vec3.fromValues(0, 0);
         let head = this.spine[0];
 
         if (head.x < borderMargin) {
@@ -331,7 +339,7 @@ export class ProceduralAnimal {
     kill() {
         this.isAlive = false;
     }
-
+    
     collisionEnter(other) {
         if(other instanceof Mouse) {
             other.kill();
@@ -343,23 +351,24 @@ export class ProceduralAnimal {
         }
     }
     
-    update() {
-        this.updateOutline();
-
+    update(game) {
         if(!this.isAlive) {
             return;
         }
-
-        this.checkFoodCollision();
+        
+        this.checkFoodCollision(game.foods);
         this.checkSelfIntersection();
-        this.checkCollision();
+        this.checkCollision(game.animals);
         //this.checkBorders();
         this.updateSpine();
     }
-
+    
     draw() {
+        this.updateOutline();
         this.drawOutline();
         this.drawEyes();
         this.drawTrace();
     }
 }
+
+module.exports = ProceduralAnimal

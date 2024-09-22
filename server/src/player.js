@@ -1,9 +1,10 @@
-import { Carnivorous } from "./carnivorous.js";
+const Carnivorous = require("./animals/carnivorous.js");
+const vec3 = require('vec3');
 
-export class PlayerSnake extends Carnivorous {
+class PlayerSnake extends Carnivorous {
     constructor(startPosition, controlType) {
         super(2, startPosition, "#547754", "#95CD95", "#A8E6A8");  // Call the constructor of the parent class
-        this.direction = createVector(0, -1)
+        this.direction = vec3.fromValues(0, -1)
         this.direction.normalize();
         this.controlType = "keyboard";
     }
@@ -11,7 +12,7 @@ export class PlayerSnake extends Carnivorous {
     mousePlayerControl() {
         let head = this.spine[0];
 
-        let desiredDirection = createVector(mouseX - head.x, mouseY - head.y);
+        let desiredDirection = vec3.fromValues(mouseX - head.x, mouseY - head.y);
 
         if(desiredDirection.mag() < 30) {
             return this.direction;
@@ -56,3 +57,5 @@ export class PlayerSnake extends Carnivorous {
         });
     }
 }
+
+module.exports = PlayerSnake
