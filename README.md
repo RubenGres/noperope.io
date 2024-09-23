@@ -1,5 +1,5 @@
-# Coronella
+# noperope.io 🐍
 
 WIP
 
-Snake game made with p5js using procedural character animation
+Mutiplayer snake game made with p5js using procedural animations
