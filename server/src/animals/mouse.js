@@ -1,6 +1,6 @@
 const ProceduralAnimal = require("./animals.js");
 const Game = require("../game.js")
-const { vec3 } = require('gl-matrix');
+const vec2 = require('gl-matrix/vec2');
 
 class Mouse extends ProceduralAnimal {
     
@@ -35,12 +35,12 @@ class Mouse extends ProceduralAnimal {
     desiredDirection() {
         let movingTime = 1000;
 
-        let snake_head = vec3.fromValues(0, 0);
+        let snake_head = vec2.fromValues(0, 0);
         let mouse_head = this.spine[0];
 
-        let threat_distance = snake_head.xyDistanceTo(mouse_head);
+        let threat_distance = vec2.distance(snake_head, mouse_head);
 
-        let nextDirection = vec3.fromValues(0, 0);
+        let nextDirection = vec2.fromValues(0, 0);
         
         if (threat_distance < 200) {
             let avoidSnakeDirection = createVector(mouse_head.x - snake_head.x, mouse_head.y - snake_head.y);
@@ -50,17 +50,20 @@ class Mouse extends ProceduralAnimal {
         } else {
             if (!this.randomDirection || 0 - this.randomDirectionStartTime > movingTime) {
                 // Generate a new random direction and record the start time
-                this.randomDirection = vec3.fromValues(Math.random(), Math.random()).normalize();
+                this.randomDirection = vec2.fromValues(Math.random(), Math.random())
+                vec2.normalize(this.randomDirection, this.randomDirection);
                 this.randomDirectionStartTime = 0;
             }
     
-            nextDirection.add(this.randomDirection);
+            vec2.add(nextDirection, nextDirection, this.randomDirection);
         }
 
         //let borderAvoidance = this.avoidBorderDirection(50);
         //nextDirection.add(borderAvoidance);  
 
-        return nextDirection.normalize()
+        vec2.normalize(nextDirection, nextDirection)
+        
+        return nextDirection
     }
 }
 

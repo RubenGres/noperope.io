@@ -1,11 +1,11 @@
 const Carnivorous = require("./carnivorous.js");
-const { vec2 } = require('gl-matrix');
+const vec2 = require('gl-matrix/vec2');
 
 class BotSnake extends Carnivorous {
     
     constructor(startPosition) {
         super(5, startPosition, "#545477", "#9595CD", "#A8A8E6");
-        this.targetFood = vec3.fromValues(0, 0);
+        this.targetFood = vec2.fromValues(0, 0, 0);
         this.controlType = "AI" // one of: keyboard, mouse, AI
     }
 

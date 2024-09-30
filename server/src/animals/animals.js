@@ -1,4 +1,4 @@
-const vec3 = require('vec3');
+const vec2 = require('gl-matrix/vec2');
 
 class ProceduralAnimal {
     constructor(length, startPosition, mainColor, fillColor, spineColor) {
@@ -18,7 +18,7 @@ class ProceduralAnimal {
 
         this.start = startPosition;
         
-        this.direction = vec3.fromValues(0, 0); // direction of the head of the snake
+        this.direction = vec2.fromValues(0, 0, 0); // direction of the head of the snake
         this.spine = [];
         this.outline = [];
         this.radiuses = [];
@@ -42,10 +42,12 @@ class ProceduralAnimal {
         }
         
         for (let i = 0; i < this.radiuses.length; i++) {
-            this.spine.push(vec3.fromValues(this.start.x, this.start.y + i * this.segmentLength));
+            
+            let spine_segment = vec2.fromValues(this.start[0], this.start[1] + i * this.segmentLength)
+            this.spine.push(spine_segment);
         }
 
-        this.outline = Array(2*this.spine.length).fill(vec3.fromValues(0, 0))
+        this.outline = Array(2*this.spine.length).fill(vec2.fromValues(0, 0))
     }
 
     updateSpine() {
@@ -53,32 +55,39 @@ class ProceduralAnimal {
         let desiredDirection = this.desiredDirection();
 
         // Calculate the angle between the two vectors
-        const dotProduct = this.direction.dot(desiredDirection);
-        const magnitudeA = this.direction.mag();
-        const magnitudeB = desiredDirection.mag();
+        const dotProduct = vec2.dot(this.direction, desiredDirection);
+        const magnitudeA = vec2.length(this.direction);
+        const magnitudeB = vec2.length(desiredDirection);
 
         const cosAngle = dotProduct / (magnitudeA * magnitudeB);
         const angleBetween = Math.acos(cosAngle);
         
         // Adjust the direction based on the maxSteerAngle
-        if (abs(angleBetween) > this.maxSteerAngle) {
+        if (Math.abs(angleBetween) > this.maxSteerAngle) {
             let steerAngle = this.maxSteerAngle * Math.sign(angleBetween);
             desiredDirection = this.direction.copy().rotate(steerAngle);
         }
     
-        desiredDirection.setMag(this.speed);
+        vec2.normalize(desiredDirection, desiredDirection);
+        vec2.scale(desiredDirection, desiredDirection, this.speed);
+        
         this.direction = desiredDirection;
         
         // Calculate the slither effect and move the head
-        head.add(this.direction.copy());
+        vec2.add(head, head, this.direction);
         
         // Follow with the body
         for (let i = 1; i < this.spine.length; i++) {
-            let vector = p5.Vector.sub(this.spine[i - 1], this.spine[i]).setMag(this.segmentLength);
-            this.spine[i] = p5.Vector.sub(this.spine[i - 1], vector);
+            let vector = vec2.fromValues(0, 0)
+
+            vec2.sub(vector, this.spine[i - 1], this.spine[i])
+            vec2.normalize(vector, vector)
+            vec2.scale(vector, vector, this.segmentLength);
+
+            vec2.sub(this.spine[i] , this.spine[i - 1], vector);
 
             if(i> this.headShape.length) {
-                let slitherAngle = sin(frameCount * this.slitherFrequency + i);
+                let slitherAngle = Math.sin(frameCounter * this.slitherFrequency + i);
                 
                 if(this.spine.length - i <= 1) {
                     continue
@@ -110,8 +119,8 @@ class ProceduralAnimal {
             let radius = this.radiuses[i];
             let angle = atan2(nextPoint.y - point.y, nextPoint.x - point.x);
         
-            let leftPoint = vec3.fromValues(cos(angle + PI / 2) * radius + point.x, sin(angle + PI / 2) * radius + point.y);
-            let rightPoint = vec3.fromValues(cos(angle - PI / 2) * radius + point.x, sin(angle - PI / 2) * radius + point.y);
+            let leftPoint = vec2.fromValues(cos(angle + PI / 2) * radius + point.x, sin(angle + PI / 2) * radius + point.y);
+            let rightPoint = vec2.fromValues(cos(angle - PI / 2) * radius + point.x, sin(angle - PI / 2) * radius + point.y);
         
             if (i == this.spine.length - 1) {
                 this.outline[i] = leftPoint;
@@ -128,8 +137,8 @@ class ProceduralAnimal {
         let nextPoint = this.spine[0];
         let angle = atan2(nextPoint.y - eyeSegment.y, nextPoint.x - eyeSegment.x);
       
-        let leftPoint = vec3.fromValues(cos(angle + PI / 2) * this.eyeSpacement + eyeSegment.x, sin(angle + PI / 2) * this.eyeSpacement + eyeSegment.y);
-        let rightPoint = vec3.fromValues(cos(angle - PI / 2) * this.eyeSpacement + eyeSegment.x, sin(angle - PI / 2) * this.eyeSpacement + eyeSegment.y);
+        let leftPoint = vec2.fromValues(cos(angle + PI / 2) * this.eyeSpacement + eyeSegment.x, sin(angle + PI / 2) * this.eyeSpacement + eyeSegment.y);
+        let rightPoint = vec2.fromValues(cos(angle - PI / 2) * this.eyeSpacement + eyeSegment.x, sin(angle - PI / 2) * this.eyeSpacement + eyeSegment.y);
         
         fill("#FFFFFF");
         strokeWeight(3);
@@ -139,8 +148,8 @@ class ProceduralAnimal {
         fill("#000000");
         noStroke();
         
-        let leftPupil = vec3.fromValues(cos(angle + 0.8*PI / 2) * this.eyeSpacement + eyeSegment.x, sin(angle + 0.8*PI / 2) * this.eyeSpacement + eyeSegment.y);
-        let rightPupil = vec3.fromValues(cos(angle - 0.8*PI / 2) * this.eyeSpacement + eyeSegment.x, sin(angle - 0.8*PI / 2) * this.eyeSpacement + eyeSegment.y);
+        let leftPupil = vec2.fromValues(cos(angle + 0.8*PI / 2) * this.eyeSpacement + eyeSegment.x, sin(angle + 0.8*PI / 2) * this.eyeSpacement + eyeSegment.y);
+        let rightPupil = vec2.fromValues(cos(angle - 0.8*PI / 2) * this.eyeSpacement + eyeSegment.x, sin(angle - 0.8*PI / 2) * this.eyeSpacement + eyeSegment.y);
         
         ellipse(leftPupil.x, leftPupil.y, 3, 3)
         ellipse(rightPupil.x, rightPupil.y, 3, 3)  
@@ -215,7 +224,7 @@ class ProceduralAnimal {
 
                 let tail = this.spine[this.spine.length - 1]
                 
-                this.spine.push(vec3.fromValues(tail.x, tail.y));
+                this.spine.push(vec2.fromValues(tail.x, tail.y));
             }
         }
         
@@ -256,7 +265,7 @@ class ProceduralAnimal {
         let head = this.spine[0];
         for (let i = foods.length - 1; i >= 0; i--) {
             let food = foods[i];
-            if (head.xyDistanceTo(food) < this.head_hitbox_radius) {
+            if (vec2.distance(head, food) < this.head_hitbox_radius) {
                 this.startEatingAnimation();
                 
                 foods.splice(i, 1);
@@ -294,7 +303,7 @@ class ProceduralAnimal {
             
             for (let i = 0; i < other.spine.length; i++) {
                 let other_vertebre = other.spine[i];
-                if (head.xyDistanceTo(other_vertebre) < this.head_hitbox_radius) {
+                if (vec2.distance(head, other_vertebre) < this.head_hitbox_radius) {
                     this.collisionEnter(other);
                     break;
                 }
@@ -305,7 +314,7 @@ class ProceduralAnimal {
     checkSelfIntersection() {
         let head = this.spine[0];
         for (let i = 3; i < this.spine.length; i++) {
-            if (head.xyDistanceTo(this.spine[i]) < this.head_hitbox_radius) {
+            if (vec2.distance(head, this.spine[i]) < this.head_hitbox_radius) {
                 this.kill();
                 break;
             }
@@ -313,12 +322,12 @@ class ProceduralAnimal {
     }
 
     desiredDirection() {
-        return vec3.fromValues(0, 0);
+        return vec2.fromValues(0, 0);
     }
 
     avoidBorderDirection(borderMargin) {
         // Steer away from borders if getting too close
-        let borderAvoidance = vec3.fromValues(0, 0);
+        let borderAvoidance = vec2.fromValues(0, 0);
         let head = this.spine[0];
 
         if (head.x < borderMargin) {

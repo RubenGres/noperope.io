@@ -1,10 +1,10 @@
 const Carnivorous = require("./animals/carnivorous.js");
-const vec3 = require('vec3');
+const vec2 = require('gl-matrix/vec2');
 
 class PlayerSnake extends Carnivorous {
     constructor(startPosition, controlType) {
         super(2, startPosition, "#547754", "#95CD95", "#A8E6A8");  // Call the constructor of the parent class
-        this.direction = vec3.fromValues(0, -1)
+        this.direction = vec2.fromValues(0, -1)
         this.direction.normalize();
         this.controlType = "keyboard";
     }
@@ -12,7 +12,7 @@ class PlayerSnake extends Carnivorous {
     mousePlayerControl() {
         let head = this.spine[0];
 
-        let desiredDirection = vec3.fromValues(mouseX - head.x, mouseY - head.y);
+        let desiredDirection = vec2.fromValues(mouseX - head.x, mouseY - head.y);
 
         if(desiredDirection.mag() < 30) {
             return this.direction;

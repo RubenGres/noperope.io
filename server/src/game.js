@@ -1,7 +1,7 @@
 const Mouse = require('./animals/mouse'); 
 const PlayerSnake = require("./player")
 const BotSnake = require('./animals/snake')
-const vec3 = require('gl-matrix');
+const vec2 = require('gl-matrix/vec2');
 
 const FOOD_SPAWN_MARGINS = 50;
 
@@ -24,8 +24,8 @@ class Game {
 
         this.addFood(3);
         
-        let mouse = new Mouse(vec3.fromValues(width * 0.25, this.height / 2));
-        let botSnake = new BotSnake(vec3.fromValues(width * 0.75, this.height / 2));
+        let mouse = new Mouse(vec2.fromValues(width * 0.25, this.height / 2));
+        let botSnake = new BotSnake(vec2.fromValues(width * 0.75, this.height / 2));
 
         this.animals.push(mouse);
         this.animals.push(botSnake);
@@ -36,7 +36,7 @@ class Game {
     }
 
     addPlayer(playerId) {
-        let player_snake = new PlayerSnake(vec3.fromValues(width * 0.5, this.height / 2));
+        let player_snake = new PlayerSnake(vec2.fromValues(width * 0.5, this.height / 2));
         this.players[playerId] = player_snake;
     }
 
@@ -56,7 +56,7 @@ class Game {
         for(let i = 0; i < n; i++) {
             let food_x = FOOD_SPAWN_MARGINS + Math.random() * (this.width - 2 * FOOD_SPAWN_MARGINS)
             let food_y = FOOD_SPAWN_MARGINS + Math.random() * (this.height - 2 * FOOD_SPAWN_MARGINS)
-            let food = vec3.fromValues(food_x, food_y);
+            let food = vec2.fromValues(food_x, food_y, 0);
             this.foods.push(food);
         }
     }
